@@ -45,6 +45,9 @@ public class Propagator {
 //Definiuję propagator jako Keplerian Propagator
         KeplerianPropagator kepler = new KeplerianPropagator(initialOrbit);
 
+//dodaję modele sił
+
+
         double duration = 600.; //czas trwania propagacji [s]
         AbsoluteDate finalDate = initialDate.shiftedBy(duration);
         double stepT = 60.; //rozmiar kroku propagacji [s]
