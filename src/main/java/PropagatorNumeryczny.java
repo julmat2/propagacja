@@ -1,25 +1,26 @@
 import org.hipparchus.ode.nonstiff.AdaptiveStepsizeIntegrator;
 import org.hipparchus.ode.nonstiff.DormandPrince853Integrator;
 import org.hipparchus.util.FastMath;
+import org.orekit.bodies.CelestialBodyFactory;
 import org.orekit.data.DataProvidersManager;
 import org.orekit.data.DirectoryCrawler;
 import org.orekit.forces.ForceModel;
 import org.orekit.forces.gravity.HolmesFeatherstoneAttractionModel;
+import org.orekit.forces.gravity.ThirdBodyAttraction;
 import org.orekit.forces.gravity.potential.GravityFieldFactory;
 import org.orekit.forces.gravity.potential.NormalizedSphericalHarmonicsProvider;
+import org.orekit.forces.radiation.RadiationSensitive;
+import org.orekit.forces.radiation.SolarRadiationPressure;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
-import org.orekit.orbits.KeplerianOrbit;
-import org.orekit.orbits.Orbit;
-import org.orekit.orbits.OrbitType;
-import org.orekit.orbits.PositionAngle;
+import org.orekit.orbits.*;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.propagation.numerical.NumericalPropagator;
 import org.orekit.propagation.sampling.OrekitFixedStepHandler;
 import org.orekit.time.AbsoluteDate;
 import org.orekit.time.TimeScale;
 import org.orekit.time.TimeScalesFactory;
-import org.orekit.utils.IERSConventions;
+import org.orekit.utils.*;
 
 import java.io.File;
 import java.util.Locale;
@@ -37,10 +38,12 @@ public class PropagatorNumeryczny {
         Frame inertialFrame = FramesFactory.getEME2000();
 
 //Ustawiam stan początkowy
+        //wczytywanie plików
+
         TimeScale utc = TimeScalesFactory.getUTC();
         AbsoluteDate initialDate = new AbsoluteDate(2004, 01, 01, 23, 30, 00.000, utc);
 
-        double mu = 3.986004415e+14;
+        double mu = Constants.EGM96_EARTH_MU; //m3/s2
 
         double a = 24396159;                 // semi major axis in meters
         double e = 0.72831215;               // eccentricity
@@ -49,9 +52,15 @@ public class PropagatorNumeryczny {
         double raan = Math.toRadians(261);   // right ascension of ascending node
         double lM = 0;                       // mean anomaly
 
+        double mass = 1000.0; //satellite mass
+        double area = 20.0; // satellite area
+        int degree = 10; // gravity degree
+        int order = 10; // gravity order
+
 //definiuję początkową orbitę - Keplerian Orbit
         Orbit initialOrbit = new KeplerianOrbit(a, e, i, omega, raan, lM, PositionAngle.MEAN,
                 inertialFrame, initialDate, mu);
+
 
         // Initial state definition
         SpacecraftState initialState = new SpacecraftState(initialOrbit);
@@ -64,6 +73,7 @@ public class PropagatorNumeryczny {
         double maxstep = 1000.0;
         double positionTolerance = 10.0;
         OrbitType propagationType = OrbitType.KEPLERIAN;
+
         double[][] tolerances =
                 NumericalPropagator.tolerances(positionTolerance, initialOrbit, propagationType);
         AdaptiveStepsizeIntegrator integrator =
@@ -74,17 +84,40 @@ public class PropagatorNumeryczny {
 
 
 //dodaję modele sił
+        //GRAWITACJA
+
         NormalizedSphericalHarmonicsProvider provider =
-                GravityFieldFactory.getNormalizedProvider(10, 10);
+                GravityFieldFactory.getNormalizedProvider(degree, order);
         ForceModel holmesFeatherstone =
                 new HolmesFeatherstoneAttractionModel(FramesFactory.getITRF(IERSConventions.IERS_2010, true), provider);
 
         propagator.addForceModel(holmesFeatherstone);
 
+        //TRZECIE CIALO
+        ForceModel sun = new ThirdBodyAttraction(CelestialBodyFactory.getSun());
+        propagator.addForceModel(sun);
+        ForceModel moon = new ThirdBodyAttraction(CelestialBodyFactory.getMoon());
+        propagator.addForceModel(moon);
+
+        //CISNIENIE PROMIENIOWANIA SLONECZNEGO
+//        dRef - reference distance for the solar radiation pressure (m)
+//        pRef - reference solar radiation pressure at dRef (N/m²)
+
+        double dref = Constants.IAU_2012_ASTRONOMICAL_UNIT; //[m]
+        double pRef = 4.56*Math.pow(10,-6);// [N/m²]
+        ForceModel SRC = new SolarRadiationPressure(dref, pRef, CelestialBodyFactory.getSun(), Constants.EGM96_EARTH_EQUATORIAL_RADIUS, (RadiationSensitive) initialState);
+        propagator.addForceModel(SRC);
+        //PLYWY OCEANICZNE
+
+        //SILY RELATYWISTYCZNE
+
+        //ATMOSFERA
+
+
         System.out.println("          date                a           e" +
                 "           i         \u03c9          \u03a9" +
                 "          \u03bd");
-     class TutorialStepHandler implements OrekitFixedStepHandler {
+        class TutorialStepHandler implements OrekitFixedStepHandler {
 
 //            public void init(final SpacecraftState s0, final AbsoluteDate t) {
 //                System.out.println("          date                a           e" +
@@ -102,6 +135,8 @@ public class PropagatorNumeryczny {
                         FastMath.toDegrees(o.getPerigeeArgument()),
                         FastMath.toDegrees(o.getRightAscensionOfAscendingNode()),
                         FastMath.toDegrees(o.getTrueAnomaly()));
+
+
                 if (isLast) {
                     System.out.println("this was the last step ");
                     System.out.println();
@@ -115,10 +150,13 @@ public class PropagatorNumeryczny {
         SpacecraftState finalState = propagator.propagate(new AbsoluteDate(initialDate, 630.));
 
         KeplerianOrbit Final = (KeplerianOrbit) OrbitType.KEPLERIAN.convertType(finalState.getOrbit());
-        System.out.println("Final state:");
-        System.out.format(Locale.US ,"%s %12.3f %10.8f %10.6f %10.6f %10.6f %10.6f%n", Final.getDate(), Final.getA(), Final.getE(), FastMath.toDegrees(Final.getI()), FastMath.toDegrees(Final.getPerigeeArgument()), FastMath.toDegrees(Final.getRightAscensionOfAscendingNode()), FastMath.toDegrees(Final.getTrueAnomaly()));
-        }
+        CartesianOrbit FinalPV = (CartesianOrbit) OrbitType.CARTESIAN.convertType(finalState.getOrbit());
 
+        System.out.println("Final state:");
+        System.out.format(Locale.US, "%s %12.3f %10.8f %10.6f %10.6f %10.6f %10.6f%n", Final.getDate(), Final.getA(), Final.getE(), FastMath.toDegrees(Final.getI()), FastMath.toDegrees(Final.getPerigeeArgument()), FastMath.toDegrees(Final.getRightAscensionOfAscendingNode()), FastMath.toDegrees(Final.getTrueAnomaly()));
+        System.out.println("PV" + FinalPV.toString());
     }
+
+}
 
 

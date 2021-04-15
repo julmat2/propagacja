@@ -11,7 +11,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="15">
-      <module name="orekit" target="" />
+      <module name="orekit" target="1.8" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
