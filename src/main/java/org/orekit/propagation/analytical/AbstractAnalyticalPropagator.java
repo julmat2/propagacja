@@ -16,6 +16,7 @@
  */
 package org.orekit.propagation.analytical;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -178,8 +179,8 @@ public abstract class AbstractAnalyticalPropagator extends AbstractPropagator {
             setStartDate(state.getDate());
             return state;
 
-        } catch (MathRuntimeException mrte) {
-            throw OrekitException.unwrap(mrte);
+        } catch (MathRuntimeException | FileNotFoundException mrte) {
+            throw OrekitException.unwrap((MathRuntimeException) mrte);
         }
     }
 
@@ -192,7 +193,7 @@ public abstract class AbstractAnalyticalPropagator extends AbstractPropagator {
      */
     protected SpacecraftState acceptStep(final OrekitStepInterpolator interpolator,
                                          final AbsoluteDate target, final double epsilon)
-        throws MathRuntimeException {
+            throws MathRuntimeException, FileNotFoundException {
 
         SpacecraftState       previous = interpolator.getPreviousState();
         final SpacecraftState current  = interpolator.getCurrentState();

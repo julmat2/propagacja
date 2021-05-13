@@ -19,6 +19,8 @@ package org.orekit.propagation.sampling;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.time.AbsoluteDate;
 
+import java.io.FileNotFoundException;
+
 /** This interface is a space-dynamics aware fixed size step handler.
  *
  * <p>It mirrors the <code>FixedStepHandler</code> interface from <a
@@ -48,6 +50,6 @@ public interface OrekitFixedStepHandler {
      * @param currentState current state at step time
      * @param isLast if true, this is the last integration step
      */
-    void handleStep(SpacecraftState currentState, boolean isLast);
+    void handleStep(SpacecraftState currentState, boolean isLast) throws FileNotFoundException;
 
 }

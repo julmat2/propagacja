@@ -16,6 +16,7 @@
  */
 package org.orekit.propagation.sampling;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +59,7 @@ public class OrekitFixedStepHandlerMultiplexer implements OrekitFixedStepHandler
 
     /** {@inheritDoc} */
     @Override
-    public void handleStep(final SpacecraftState currentState, final boolean isLast){
+    public void handleStep(final SpacecraftState currentState, final boolean isLast) throws FileNotFoundException {
         for (final OrekitFixedStepHandler handler : handlers) {
             handler.handleStep(currentState, isLast);
         }

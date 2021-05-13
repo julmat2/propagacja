@@ -16,6 +16,7 @@
  */
 package org.orekit.propagation.integration;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -857,7 +858,11 @@ public abstract class AbstractIntegratedPropagator extends AbstractPropagator {
         /** {@inheritDoc} */
         public void handleStep(final ODEStateInterpolator interpolator, final boolean isLast) {
             if (activate) {
-                handler.handleStep(new AdaptedStepInterpolator(interpolator), isLast);
+                try {
+                    handler.handleStep(new AdaptedStepInterpolator(interpolator), isLast);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
             }
         }
 

@@ -16,6 +16,7 @@
  */
 package org.orekit.propagation.sampling;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,7 +53,7 @@ public class OrekitStepHandlerMultiplexer implements OrekitStepHandler {
     }
 
     /** {@inheritDoc} */
-    public void handleStep(final OrekitStepInterpolator interpolator, final boolean isLast) {
+    public void handleStep(final OrekitStepInterpolator interpolator, final boolean isLast) throws FileNotFoundException {
         for (final OrekitStepHandler handler : handlers) {
             handler.handleStep(interpolator, isLast);
         }

@@ -20,6 +20,8 @@ import org.hipparchus.util.FastMath;
 import org.orekit.propagation.SpacecraftState;
 import org.orekit.time.AbsoluteDate;
 
+import java.io.FileNotFoundException;
+
 /**
  * This class wraps an object implementing {@link OrekitFixedStepHandler}
  * into a {@link OrekitStepHandler}.
@@ -82,7 +84,7 @@ public class OrekitStepNormalizer implements OrekitStepHandler {
      * copy.
      * @param isLast true if the step is the last one
      */
-    public void handleStep(final OrekitStepInterpolator interpolator, final boolean isLast) {
+    public void handleStep(final OrekitStepInterpolator interpolator, final boolean isLast) throws FileNotFoundException {
 
         if (lastState == null) {
             // initialize lastState in the first step case
