@@ -391,13 +391,10 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${orekit.maven-compiler-plugin.version}</version>
         <configuration>
-          <source>${orekit.compiler.source}</source>
-          <target>${orekit.compiler.target}</target>
+          <source>15</source>
+          <target>15</target>
           <showWarnings>true</showWarnings>
-          <compilerArgs>
-            <arg>-Xlint:deprecation</arg>
-            <arg>-Xplugin:dataContextPlugin</arg>
-          </compilerArgs>
+          <compilerArgs>--enable-preview</compilerArgs>
         </configuration>
         <executions>
           <execution>

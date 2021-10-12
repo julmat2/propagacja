@@ -1,0 +1,21 @@
+#Nazwa obiektu
+# Numer np norad, cospar
+#date
+#semi major axis in meters
+#eccentricity
+#inclination [deg] 
+#perigee argument [deg]
+#right ascension of ascending node [deg]
+#mean anomaly
+#mass 
+#area
+
+date: 2004-01-01T23:30:00.000
+a: 24396159
+e: 0.72831215
+i: 7
+omega: 180
+raan: 261
+lM: 0
+mass: 1000.0
+area: 20.0

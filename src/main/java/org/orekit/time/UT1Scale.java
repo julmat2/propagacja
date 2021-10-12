@@ -43,7 +43,7 @@ public class UT1Scale implements TimeScale {
      * @param eopHistory user supplied EOP history (may be null)
      * @param utc UTC time scale
      */
-    protected UT1Scale(final EOPHistory eopHistory, final UTCScale utc) {
+    public UT1Scale(final EOPHistory eopHistory, final UTCScale utc) {
         this.eopHistory = eopHistory;
         this.utc        = utc;
     }

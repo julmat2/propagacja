@@ -1,0 +1,41 @@
+#   GNUPLOT v3.6 beta multiplot script file
+#
+reset
+set terminal postscript   color enhanced solid 16
+set encoding iso_8859_2
+
+unset log
+unset label
+set term jpeg
+set output 'pozX.jpeg'
+set ylabel "position along X (km)"
+set xlabel  "Time from initial date [s]"
+set autoscale
+plot "wynik_pv.txt" using 2:3 w l  lt 3 lw 3
+
+set output 'pozY.jpeg'
+set ylabel "position along Y (km)"
+set xlabel  "Time from initial date [s]"
+plot "wynik_pv.txt" using 2:4 w l  lt 1 lw 3
+
+set output 'pozZ.jpeg'
+set ylabel "position along Z (km)"
+set xlabel  "Time from initial date [s]"
+plot "wynik_pv.txt" using 2:5 w l  lt 2 lw 3
+
+set output 'velX.jpeg'
+set ylabel "velocity along X (km/s)"
+set xlabel  "Time from initial date [s]"
+plot "wynik_pv.txt" using 2:6 w l  lt 4 lw 3
+
+set output 'velY.jpeg'
+set ylabel "velocity along Y (km/s)"
+set xlabel  "Time from initial date [s]"
+plot "wynik_pv.txt" using 2:7 w l  lt 6 lw 3
+
+set output 'velZ.jpeg'
+set ylabel "velocity along Z (km/s)"
+set xlabel  "Time from initial date [s]"
+plot "wynik_pv.txt" using 2:8 w l  lt 7 lw 3
+
+

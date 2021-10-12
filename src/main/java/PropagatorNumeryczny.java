@@ -3,16 +3,26 @@ import org.hipparchus.ode.nonstiff.DormandPrince853Integrator;
 import org.hipparchus.util.FastMath;
 import org.hipparchus.util.MathUtils;
 import org.orekit.bodies.CelestialBodyFactory;
+import org.orekit.bodies.OneAxisEllipsoid;
 import org.orekit.data.DataContext;
 import org.orekit.data.DataProvidersManager;
 import org.orekit.data.DirectoryCrawler;
 import org.orekit.forces.ForceModel;
+import org.orekit.forces.drag.DragForce;
+import org.orekit.forces.drag.IsotropicDrag;
 import org.orekit.forces.gravity.HolmesFeatherstoneAttractionModel;
+import org.orekit.forces.gravity.OceanTides;
 import org.orekit.forces.gravity.ThirdBodyAttraction;
 import org.orekit.forces.gravity.potential.GravityFieldFactory;
 import org.orekit.forces.gravity.potential.NormalizedSphericalHarmonicsProvider;
+import org.orekit.forces.radiation.IsotropicRadiationSingleCoefficient;
+import org.orekit.forces.radiation.SolarRadiationPressure;
 import org.orekit.frames.Frame;
 import org.orekit.frames.FramesFactory;
+import org.orekit.models.earth.atmosphere.Atmosphere;
+import org.orekit.models.earth.atmosphere.DTM2000;
+import org.orekit.models.earth.atmosphere.DTM2000InputParameters;
+import org.orekit.models.earth.atmosphere.data.MarshallSolarActivityFutureEstimation;
 import org.orekit.orbits.KeplerianOrbit;
 import org.orekit.orbits.Orbit;
 import org.orekit.orbits.OrbitType;
@@ -26,6 +36,7 @@ import org.orekit.time.TimeScalesFactory;
 import org.orekit.utils.Constants;
 import org.orekit.utils.IERSConventions;
 import org.orekit.utils.PVCoordinates;
+import org.orekit.utils.PVCoordinatesProvider;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -43,8 +54,6 @@ public class PropagatorNumeryczny {
 
 //wczytuję dane z orekit-data
         File orData = new File("C:/Users/matys/Desktop/PROGRAMY_STUDIA/INNE/PROPAGACJA");
-//        DataProvidersManager dman = DataProvidersManager.getInstance();
-//        dman.addProvider(new DirectoryCrawler(orData));
 
         DataProvidersManager manager = DataContext.getDefault().getDataProvidersManager();
         manager.addProvider(new DirectoryCrawler(orData));
@@ -55,8 +64,6 @@ public class PropagatorNumeryczny {
         PrintWriter output2 = new PrintWriter("C:/Users/matys/Desktop/PROGRAMY_STUDIA/INNE/PROPAGACJA/wynik_eq6.txt");
         PrintWriter output3 = new PrintWriter("C:/Users/matys/Desktop/PROGRAMY_STUDIA/INNE/PROPAGACJA/wynik_pv.txt");
 
-//definiuję ramkę odniesienia
-        Frame inertialFrame = FramesFactory.getEME2000();
 
 //Ustawiam stan początkowy
         //wczytywanie plików
@@ -150,17 +157,29 @@ public class PropagatorNumeryczny {
             int order = forces_map.get("GMorder");
             int sun_force = forces_map.get("sun");
             int moon_force = forces_map.get("moon");
-            int atmosphere = forces_map.get("atmosphere");
+            int atmosphere_force = forces_map.get("atmosphere");
             int ATMmodel = forces_map.get("ATMmodel");
-            int SRP = forces_map.get("SRP");
-            int OT = forces_map.get("OT");
-            int RAcc = forces_map.get("RAcc");
+            int SRP_force = forces_map.get("SRP");
+            int OT_force = forces_map.get("OT");
+            int RAcc_force = forces_map.get("RAcc");
+
 
             TimeScale utc = TimeScalesFactory.getUTC();
             AbsoluteDate initialDate = new AbsoluteDate(year, month, day, hour, min, sekPlusMili, utc);
 
+
+            //definiuję ramkę odniesienia
+            Frame inertialFrame = FramesFactory.getEME2000();
             double mu = Constants.EGM96_EARTH_MU; //m3/s2
 
+//            final NormalizedSphericalHarmonicsProvider gravityField = createGravityField(config.getCentralBody());
+
+
+            // IERS conventions
+            final IERSConventions IERSconventions = IERSConventions.IERS_2010;
+
+            // central body
+            final OneAxisEllipsoid body = new OneAxisEllipsoid(Constants.IERS2010_EARTH_EQUATORIAL_RADIUS, Constants.IERS2010_EARTH_FLATTENING, FramesFactory.getITRF(IERSconventions, true));
 
 //definiuję początkową orbitę - Keplerian Orbit
             Orbit initialOrbit = new KeplerianOrbit(a, e, i, omega, raan, lM, PositionAngle.MEAN,
@@ -199,49 +218,77 @@ public class PropagatorNumeryczny {
             ForceModel holmesFeatherstone =
                     new HolmesFeatherstoneAttractionModel(FramesFactory.getITRF(IERSConventions.IERS_2010, true), provider);
 
-            if (gravity_force == 1){
-            propagator.addForceModel(holmesFeatherstone);
+            if (gravity_force == 1) {
+                propagator.addForceModel(holmesFeatherstone);
             }
 
 
             //TRZECIE CIALO
             ForceModel sun = new ThirdBodyAttraction(CelestialBodyFactory.getSun());
-            propagator.addForceModel(sun);
+            if (sun_force == 1) {
+                propagator.addForceModel(sun);
+            }
             ForceModel moon = new ThirdBodyAttraction(CelestialBodyFactory.getMoon());
-            propagator.addForceModel(moon);
+            if (moon_force == 1) {
+                propagator.addForceModel(moon);
+            }
 
             //CISNIENIE PROMIENIOWANIA SLONECZNEGO
+            double cr = elements_map.get("pressureCr");
 
-//        dRef - reference distance for the solar radiation pressure (m)
-//        pRef - reference solar radiation pressure at dRef (N/m²)
 
-//        double dref = Constants.IAU_2012_ASTRONOMICAL_UNIT; //[m]
-//        double pRef = 4.56*Math.pow(10,-6);// [N/m²]
-//        ForceModel SRC = new SolarRadiationPressure(dref, pRef, CelestialBodyFactory.getSun(), Constants.EGM96_EARTH_EQUATORIAL_RADIUS, (RadiationSensitive) initialState);
-//        propagator.addForceModel(SRC);
+            SolarRadiationPressure solarRadiationPressure = new SolarRadiationPressure(CelestialBodyFactory.getSun(),
+                    body.getEquatorialRadius(),
+                    new IsotropicRadiationSingleCoefficient(area, cr));
+
+            if (SRP_force == 1) {
+                propagator.addForceModel(solarRadiationPressure);
+            }
+
 
             //PLYWY OCEANICZNE
+
+            OceanTides oceanTides = new OceanTides(FramesFactory.getITRF(IERSconventions, true), Constants.IERS2010_EARTH_EQUATORIAL_RADIUS,
+                    Constants.IERS2010_EARTH_MU,
+                    degree,
+                    order,
+                    IERSconventions,
+                    TimeScalesFactory.getUT1(IERSconventions, true));
+
+            if (OT_force == 1) {
+                propagator.addForceModel(oceanTides);
+            }
+
 
             //SILY RELATYWISTYCZNE
 
             //ATMOSFERA
-//        final UnnormalizedSphericalHarmonicsProvider unnormalized =
-//                GravityFieldFactory.getConstantUnnormalizedProvider(degree, order);
-//        final ForceModel forceModelData = propa.getPropagator().getForceModels();
-//        final double ae = unnormalized.getAe();
-//        final double mu1 = unnormalized.getMu();
-//        final Frame earthFrame = FramesFactory.getITRF(IERSConventions.IERS_2010, true);
-//
-//        final DragForce drag = forceDataModel.getDrag();
-//        final OneAxisEllipsoid earth = new OneAxisEllipsoid(ae, Constants.WGS84_EARTH_FLATTENING, earthFrame);
-//        final Atmosphere atm = new HarrisPriester(CelestialBodyFactory.getSun(), earth, 6);
-//        propagator.addForceModel(new Atmosphere(atm, 2.0,
-//                drag.getArea(), mu1));
+            double cd = elements_map.get("dragCd");
+            interface AtmosphereConfiguration {
+                public Atmosphere create(PVCoordinatesProvider sun, OneAxisEllipsoid earth);
+            }
+            int atmosphereConfiguration = ATMmodel;
+
+
+
+                DTM2000InputParameters parameters = new MarshallSolarActivityFutureEstimation(
+                        MarshallSolarActivityFutureEstimation.DEFAULT_SUPPORTED_NAMES,
+                        MarshallSolarActivityFutureEstimation.StrengthLevel.AVERAGE);
+
+                PVCoordinatesProvider SUN = CelestialBodyFactory.getSun();
+                Atmosphere atmosphere = new DTM2000(parameters, SUN != null ? SUN : SUN, body);
+//                DragForce dragForce = new DragForce(atmosphere, new IsotropicDrag(area, cd));
+//                propagator.addForceModel(dragForce);
+
+
+
+            DragForce dragForce = new DragForce(atmosphere, new IsotropicDrag(area, cd));
+            propagator.addForceModel(dragForce);
 
 
             System.out.println("          date         timeFromStart     a           e" +
                     "           i         \u03c9          \u03a9" +
-                    "          \u03bd");
+                    "          M");
             class TutorialStepHandler implements OrekitFixedStepHandler {
 
 //            public void init(final SpacecraftState s0, final AbsoluteDate t) {
@@ -333,7 +380,7 @@ public class PropagatorNumeryczny {
             output3.close();
         }
 
+        }
     }
-}
 
 

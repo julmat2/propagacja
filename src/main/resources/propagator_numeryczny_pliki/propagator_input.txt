@@ -1,0 +1,11 @@
+#minimalny krok
+#maksymalny krok
+#tolerancja pozycji [chyba w metrach]
+#czas między poszczególnymi momentami czasu [sekundy]
+#czas propagacji [sekundy]
+#po wartościach `example: 10` po wartości liczbowej nie może być spacji.
+minStep: 0.001
+maxStep: 1000.0
+positionTolerance: 10.0
+durationTime: 30.0
+propagationTime: 660.0

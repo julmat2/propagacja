@@ -1,0 +1,41 @@
+#   GNUPLOT v3.6 beta multiplot script file
+#
+reset
+set terminal postscript   color enhanced solid 16
+set encoding iso_8859_2
+
+unset log
+unset label
+set term jpeg
+set output 'a.jpeg'
+set ylabel "a [km]"
+set xlabel  "Time from initial date [s]"
+set autoscale
+plot "wynik_kepler.txt" using 2:3 w l  lt 3 lw 3
+
+set output 'e.jpeg'
+set ylabel "e"
+set xlabel  "Time from initial date [s]"
+plot "wynik_kepler.txt" using 2:4 w l  lt 1 lw 3
+
+set output 'i.jpeg'
+set ylabel "I"
+set xlabel  "Time from initial date [s]"
+plot "wynik_kepler.txt" using 2:5 w l  lt 2 lw 3
+
+set output 'omega.jpeg'
+set ylabel "omega"
+set xlabel  "Time from initial date [s]"
+plot "wynik_kepler.txt" using 2:6 w l  lt 4 lw 3
+
+set output 'raan.jpeg'
+set ylabel "raan"
+set xlabel  "Time from initial date [s]"
+plot "wynik_kepler.txt" using 2:7 w l  lt 6 lw 3
+
+set output 'lM.jpeg'
+set ylabel "lM"
+set xlabel  "Time from initial date [s]"
+plot "wynik_kepler.txt" using 2:8 w l  lt 7 lw 3
+
+

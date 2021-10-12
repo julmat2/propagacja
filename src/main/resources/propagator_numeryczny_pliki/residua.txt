@@ -1,0 +1,86 @@
+#   GNUPLOT v3.6 beta multiplot script file
+#
+reset
+set terminal postscript   color enhanced solid 16
+set encoding iso_8859_2
+#
+#
+#
+#set output 'res.jpg'
+#set ylabel "Res [arcsec]"
+#set xlabel  "Time"
+#set log y
+#set xrange[50:60]
+#set yrange [0: 100]
+#set xtics 60
+#set ytics 0.5
+#set mytics 5
+#set key outside
+#set  title   "Object No. 33857 (Iridium):  a=6993.2 km  e=0.0007  I=31.87^{o}"
+
+
+#set label "Pair I "at 5,   230
+#set label "a=6778km" at 5, 210
+#set label"e=0.001" at 5,200
+#set label"I=5{/Symbol \260}" at 5, 190
+#set label"d{/Symbol \127}=0.05{/Symbol \260}" at 7,  210
+#set label"dI=0.05{/Symbol \260}" at 7, 200
+#set label "M = 60{/Symbol \260}" at 2, 100  right
+#set arrow from 2.1, 98 to 3.2,68
+#set label "M = 0{/Symbol \260}" at 8, 50 left
+#set arrow from 7.9, 53 to 7.0, 84
+#'el05.wyn'  using ($1/60/24):2  t "05" w l lt -1,'el02.wyn'  using ($1/60/24):2  t "dodanie" w l lt 5 ,'el035.wyn'  using ($1/60/24):2  t "sm=0.035" w l lt 4,
+
+
+#Nie wiem czy o to Tobie chodzilo ale 3maj
+
+
+unset log
+unset label
+set term jpeg
+set output 'a.jpeg'
+set ylabel "a [km]"
+set xlabel  "Time from initial date [s]"
+set autoscale
+plot "wynik_kepler_mod.txt" using 2:3 w l  lt 3
+
+set output 'e.jpeg'
+set ylabel "e"
+set xlabel  "Time from initial date [s]"
+plot "wynik_kepler_mod.txt" using 2:4 w l  lt 3
+
+set output 'i.jpeg'
+set ylabel "i"
+set xlabel  "Time from initial date [s]"
+plot "wynik_kepler_mod.txt" using 2:5 w l  lt 3
+
+set output 'omega.jpeg'
+set ylabel "omega"
+set xlabel  "Time from initial date [s]"
+plot "wynik_kepler_mod.txt" using 2:6 w l  lt 3
+
+set output 'raan.jpeg'
+set ylabel "raan"
+set xlabel  "Time from initial date [s]"
+plot "wynik_kepler_mod.txt" using 2:7 w l  lt 3
+
+set output 'lM.jpeg'
+set ylabel "lM"
+set xlabel  "Time from initial date [s]"
+plot "wynik_kepler_mod.txt" using 2:8 w l  lt 3
+
+#set output 'mass.jpeg'
+#set ylabel "mass"
+#set xlabel  "Time from initial date [s]"
+#plot "wynik_kepler_mod.txt" using 2:9 w l  lt 3
+
+#set output 'area.jpeg'
+#set ylabel "area"
+#set xlabel  "Time from initial date [s]"
+#plot "wynik_kepler_mod.txt" using 2:10 w l  lt 3
+
+#set nomultiplot
+#
+#
+#
+#reset
